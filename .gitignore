@@ -1,0 +1,17 @@
+# Python / Jupyter
+__pycache__/
+*.pyc
+*.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Virtual Environment
+venv/
+
+# Datenbanken / CSVs
+/data/*.csv
+*.db
+
+# Logs / temp
+*.log
