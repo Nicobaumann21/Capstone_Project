@@ -9,9 +9,5 @@ __pycache__/
 # Virtual Environment
 venv/
 
-# Datenbanken / CSVs
-/data/*.csv
-*.db
-
 # Logs / temp
 *.log
