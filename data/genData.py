@@ -212,20 +212,21 @@ def generate_tags(cur):
 
 
 
-def generate_project_tags(cur):
+def generate_project_tags(cur, current_project_ids):
     project_ids = get_ids(cur, "projects")
     tag_ids = get_ids(cur, "tags")
     for project_id in project_ids:
-        number_of_tags = random.randint(1, 3)
-        tags = random.sample(tag_ids, number_of_tags)
-        for tag_id in tags:
-            cur.execute("""
-                INSERT INTO project_tags (project_id, tag_id)
-                VALUES (%s, %s)
-            """, (
-                project_id,
-                tag_id
-            ))
+        if project_id not in current_project_ids:
+            number_of_tags = random.randint(1, 3)
+            tags = random.sample(tag_ids, number_of_tags)
+            for tag_id in tags:
+                cur.execute("""
+                    INSERT INTO project_tags (project_id, tag_id)
+                    VALUES (%s, %s)
+                """, (
+                    project_id,
+                    tag_id
+                ))
 
 
 def generate_employees(cur, n):
@@ -305,13 +306,16 @@ def main(n_clients, n_projekts, n_employees, n_tasks, n_teams, n_time_logs):
 
 
     start = time.time()
-
-    generate_tags(cur)
+    if get_ids(cur, "tags") == []:
+        generate_tags(cur)
     generate_clients(cur, n_clients)
     generate_teams(cur, n_teams)
     generate_employees(cur, n_employees)
+
+    existing_project_ids = get_ids(cur, "projects") # Damit keine weitere Tags zu bereits exitierenden Projekten hinzugefügt werden
     generate_projects(cur, n_projekts)
-    generate_project_tags(cur)
+    generate_project_tags(cur, existing_project_ids)
+
     generate_tasks(cur, n_tasks)
     generate_time_logs(cur, n_time_logs)
 
