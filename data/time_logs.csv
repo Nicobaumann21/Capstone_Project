@@ -1,0 +1,4 @@
+log_id,employee_id,project_id,date,hours,type
+1,1,1,2024-01-06,4.5,development
+2,1,1,2024-01-07,3.0,development
+3,2,1,2024-02-01,2.0,marketing
