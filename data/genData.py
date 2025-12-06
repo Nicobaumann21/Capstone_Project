@@ -1,180 +1,60 @@
 import psycopg2
 from faker import Faker
 import random
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date
 import time
 
 faker = Faker()
-# --- Daten ---
+
+# --- DATEN ---
 
 industries = [
-    "Agriculture",
-    "Automotive",
-    "Aerospace",
-    "Banking",
-    "Biotechnology",
-    "Chemical Industry",
-    "Construction",
-    "Consumer Electronics",
-    "Consulting",
-    "E-Commerce",
-    "Education",
-    "Energy",
-    "Entertainment",
-    "Environmental Services",
-    "Fashion",
-    "Financial Services",
-    "Food and Beverage",
-    "Healthcare",
-    "Hospitality",
-    "Insurance",
-    "Information Technology",
-    "Logistics",
-    "Manufacturing",
-    "Marketing",
-    "Media",
-    "Mining",
-    "Nonprofit",
-    "Oil and Gas",
-    "Pharmaceuticals",
-    "Public Sector",
-    "Real Estate",
-    "Renewable Energy",
-    "Retail",
-    "Robotics",
-    "Software Development",
-    "Sports",
-    "Telecommunications",
-    "Tourism",
+    "Agriculture","Automotive","Aerospace","Banking","Biotechnology","Chemical Industry",
+    "Construction","Consumer Electronics","Consulting","E-Commerce","Education","Energy",
+    "Entertainment","Environmental Services","Fashion","Financial Services","Food and Beverage",
+    "Healthcare","Hospitality","Insurance","Information Technology","Logistics","Manufacturing",
+    "Marketing","Media","Mining","Nonprofit","Oil and Gas","Pharmaceuticals","Public Sector",
+    "Real Estate","Renewable Energy","Retail","Robotics","Software Development","Sports",
+    "Telecommunications","Tourism"
 ]
+
 client_names = [
-    "Apexion Labs",
-    "Bluecrest Dynamics",
-    "NovaCore Solutions",
-    "Vertexon Industries",
-    "Silverline Systems",
-    "CloudForge Technologies",
-    "Everbright Analytics",
-    "LuminaWorks",
-    "Starwave Innovations",
-    "QuantumPeak Software",
-    "Greenridge Manufacturing",
-    "Hyperion Commerce",
-    "Skyline Robotics",
-    "BrightSphere Group",
-    "OceanGate Logistics",
-    "AuroraHive",
-    "FutureEdge Consulting",
-    "IronGate Engineering",
-    "Northstar Holdings",
-    "DreamShift Media",
-    "SparkVector",
-    "CrimsonLeaf Foods",
-    "MetroNova Retail",
-    "SummitBridge Finance",
-    "PureFlow Biotech",
-    "RapidStream Data",
-    "OmniPath Mobility",
-    "CrystalPeak Medical",
-    "UrbanRise Realty",
-    "Golden Horizon Energy",
-    "DeepWell Resources",
-    "OrbitKey Security",
-    "CloudNest AI",
-    "SilverStream Waterworks",
-    "TrueNorth Enterprises",
-    "PrimeField Robotics",
-    "NextEra Marketing",
-    "HorizonWave Travel",
-    "BlueNest Hospitality",
-    "UrbanSpark Design",
-    "ForestMoon Games",
-    "MagmaCore Materials",
-    "DigitalTrace Networks",
-    "EcoSphere Agriculture",
-    "BrightFuel Renewables",
-    "CobaltBridge Mining",
-    "NeonPulse Entertainment",
-    "AstralPoint Telecom",
-    "Suncrest Insurance",
-    "IronRoot Construction",
-    "SwiftFox Mobility",
-    "Skybound Apparel",
-    "GreenPlanet Organics",
-    "LunarPeak Ventures",
-    "ZenithPath Consulting",
-    "Everstone Publishing",
-    "BlueTitan Defense",
-    "EchoField Analytics",
-    "SilverPulse Finance",
-    "BrightOcean Ventures",
-    "CyberVale Systems",
-    "TitanRiver Engineering",
-    "NovaForge Architecture",
-    "PrimeVista Media",
-    "FrostGate Technologies",
-    "BoldStone Retail",
-    "EcoMind Services",
-    "CrystalLeaf Cosmetics",
-    "QuantumBridge Banking",
-    "UrbanCloud IT",
-    "TruePulse Devices",
-    "Stormcrest Electronics",
-    "GoldenTrail Transport",
-    "Wavestone Travel",
-    "AetherWorks AI",
-    "Firestone Robotics",
-    "MoonStar Fashion",
-    "NeptuneForge Metals",
-    "InfiniteLoop Software",
-    "SoftWave Digital",
-    "ArcticPeak Solutions",
-    "TerraNova Healthcare",
-    "OrangeBeam Studios",
-    "BlueMosaic Consulting",
-    "HorizonRoot Education",
-    "Northgate Utilities",
-    "SteelWing Aviation",
-    "AquaPulse Labs",
-    "DataSphere Intelligence",
-    "Dynamo Ridge",
-    "SilverArrow Motors",
-    "UrbanForge Interiors",
-    "WindGate Renewables",
-    "NightSky Beverages",
-    "BrightLine HR",
-    "CrystalWorks Pharma",
-    "NovaTide Shipping",
-    "PeakVision Optics",
-    "IronLeaf Hardware"
+    "Apexion Labs","Bluecrest Dynamics","NovaCore Solutions","Vertexon Industries",
+    "Silverline Systems","CloudForge Technologies","Everbright Analytics","LuminaWorks",
+    "Starwave Innovations","QuantumPeak Software","Greenridge Manufacturing"
 ]
+
 project_tags = [
-    "High Priority",
-    "Medium Priority",
-    "Low Priority",
-    "Urgent",
-    "Critical", "Prototype", "Pilot", "Rollout","R&D"
+    "High Priority","Medium Priority","Low Priority","Urgent","Critical",
+    "Prototype","Pilot","Rollout","R&D"
 ]
 
+# --- HILFSFUNKTIONEN ---
+def sync_sequence(cur, table, column):
+    cur.execute(f"""
+        SELECT setval(
+            pg_get_serial_sequence('{table}', '{column}'),
+            COALESCE((SELECT MAX({column}) FROM {table}), 0)
+        );
+    """)
 
-
-
-# --- Hilfsfunktionen ---
 
 def get_random_date(start_date, end_date):
     delta = end_date - start_date
     return start_date + timedelta(days=random.randint(0, delta.days))
 
-
 def get_ids(cur, table):
     cur.execute(f"SELECT {table[:-1]}_id FROM {table}")
     return [row[0] for row in cur.fetchall()]
 
+def get_next_id(cur, table, id_column):
+    cur.execute(f"SELECT COALESCE(MAX({id_column}), 0) FROM {table}")
+    return cur.fetchone()[0] + 1
 
-# --- Generatoren pro Tabelle ---
+# --- GENERATOREN ---
 
 def generate_clients(cur, n):
-    for i in range(n):
+    for _ in range(n):
         cur.execute("""
             INSERT INTO clients (name, industry)
             VALUES (%s, %s)
@@ -185,10 +65,10 @@ def generate_clients(cur, n):
 
 def generate_projects(cur, n):
     client_ids = get_ids(cur, "clients")
-    for i in range(n):
+    for _ in range(n):
         start = get_random_date(date(2022, 1, 1), date(2024, 10, 1))
-        duration_days = random.randint(60, 300)
-        end = start + timedelta(days=duration_days)
+        end = start + timedelta(days=random.randint(60, 300))
+
         cur.execute("""
             INSERT INTO projects (name, client_id, start_date, end_date, status) 
             VALUES (%s, %s, %s, %s, %s)
@@ -200,26 +80,31 @@ def generate_projects(cur, n):
             random.choice(["Running", "Finished", "Planned"])
         ))
 
+# ✅ VOLLSTÄNDIG ID-SICHER & DUPLIKAT-SICHER
 def generate_tags(cur):
-    for i,tag in enumerate(project_tags):
-        cur.execute("""
-            INSERT INTO tags (tag_id, tag)
-            VALUES (%s, %s)
-        """, (
-            i,
-            tag
-        ))
+    cur.execute("SELECT tag FROM tags")
+    existing_tags = {row[0] for row in cur.fetchall()}
 
+    next_id = get_next_id(cur, "tags", "tag_id")
 
+    for tag in project_tags:
+        if tag not in existing_tags:
+            cur.execute("""
+                INSERT INTO tags (tag_id, tag)
+                VALUES (%s, %s)
+            """, (
+                next_id,
+                tag
+            ))
+            next_id += 1
 
-def generate_project_tags(cur, current_project_ids):
+def generate_project_tags(cur, existing_project_ids):
     project_ids = get_ids(cur, "projects")
     tag_ids = get_ids(cur, "tags")
+
     for project_id in project_ids:
-        if project_id not in current_project_ids:
-            number_of_tags = random.randint(1, 3)
-            tags = random.sample(tag_ids, number_of_tags)
-            for tag_id in tags:
+        if project_id not in existing_project_ids:
+            for tag_id in random.sample(tag_ids, random.randint(1, 3)):
                 cur.execute("""
                     INSERT INTO project_tags (project_id, tag_id)
                     VALUES (%s, %s)
@@ -228,10 +113,19 @@ def generate_project_tags(cur, current_project_ids):
                     tag_id
                 ))
 
+def generate_teams(cur, n):
+    for _ in range(n):
+        cur.execute("""
+            INSERT INTO teams (name)
+            VALUES (%s)
+        """, (
+            f"Team {faker.word()}",
+        ))
 
 def generate_employees(cur, n):
     team_ids = get_ids(cur, "teams")
-    for i in range(n):
+
+    for _ in range(n):
         cur.execute("""
             INSERT INTO employees (
                 name, team_id, hire_date, leave_date, role)
@@ -243,23 +137,16 @@ def generate_employees(cur, n):
             date(2028, 1, 1),
             random.choice(["Manager", "Project-Leader", "Software-Developer", "Secretary", "Human-Resources"])
         ))
-def generate_teams(cur, n):
-    for i in range(n):
-        cur.execute("""
-            INSERT INTO teams (name)
-            VALUES (%s)
-        """, (
-            f"Team {faker.word()}",
-        ))
 
 def generate_tasks(cur, n):
     employee_ids = get_ids(cur, "employees")
     project_ids = get_ids(cur, "projects")
-    for i in range(n):
+
+    for _ in range(n):
         start = get_random_date(date(2022, 1, 1), date(2024, 10, 1))
         estimated_hours = random.randint(1, 30)
-        actual_hours = estimated_hours + random.randint(-5, 5)
-        end = start + timedelta(hours=actual_hours)
+        end = start + timedelta(hours=estimated_hours + random.randint(-5, 5))
+
         cur.execute("""
             INSERT INTO tasks (project_id, assignee_id, status, created_at, closed_at, estimated_hours)
             VALUES (%s, %s, %s, %s, %s, %s)
@@ -275,10 +162,11 @@ def generate_tasks(cur, n):
 def generate_time_logs(cur, n):
     project_ids = get_ids(cur, "projects")
     employee_ids = get_ids(cur, "employees")
-    for i in range(n):
+
+    for _ in range(n):
         cur.execute("""
             INSERT INTO time_logs (employee_id, project_id, date, hours, type)
-            VALUES ( %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s)
         """, (
             random.choice(employee_ids),
             random.choice(project_ids),
@@ -287,46 +175,45 @@ def generate_time_logs(cur, n):
             random.choice(["Design", "Planning", "Research", "Development", "Meeting"])
         ))
 
+# --- MAIN ---
 
+def main(n_clients, n_projects, n_employees, n_tasks, n_teams, n_time_logs):
 
-# --- Main ---
-
-def main(n_clients, n_projekts, n_employees, n_tasks, n_teams, n_time_logs):
     conn = psycopg2.connect(
-        dbname="Portfolio",
+        dbname="pmdb",
         user="postgres",
-        password="abc123!\"§",
+        password="secret",
         host="localhost"
     )
     cur = conn.cursor()
 
-    cur.execute("SELECT current_database(), current_schema();")
-    db, schema = cur.fetchone()
-    print(f"Aktive Datenbank: {db}, Aktives Schema: {schema}")
-
-
+    # ✅ AUTOMATISCHER SEQUENZ-SYNC (entscheidend!)
+    sync_sequence(cur, "clients", "client_id")
+    sync_sequence(cur, "teams", "team_id")
+    sync_sequence(cur, "employees", "employee_id")
+    sync_sequence(cur, "projects", "project_id")
+    sync_sequence(cur, "tasks", "task_id")
+    sync_sequence(cur, "time_logs", "log_id")
     start = time.time()
-    if get_ids(cur, "tags") == []:
-        generate_tags(cur)
+
+    generate_tags(cur)                  # ID-sicher
     generate_clients(cur, n_clients)
     generate_teams(cur, n_teams)
     generate_employees(cur, n_employees)
 
-    existing_project_ids = get_ids(cur, "projects") # Damit keine weitere Tags zu bereits exitierenden Projekten hinzugefügt werden
-    generate_projects(cur, n_projekts)
+    existing_project_ids = get_ids(cur, "projects")
+    generate_projects(cur, n_projects)
     generate_project_tags(cur, existing_project_ids)
 
     generate_tasks(cur, n_tasks)
     generate_time_logs(cur, n_time_logs)
 
-    print(f"Time to generate: {time.time() - start:.2f} sec")
-
     conn.commit()
     cur.close()
     conn.close()
 
+    print(f"Time to generate: {time.time() - start:.2f} sec")
 
 
 if __name__ == "__main__":
-    main(10,100,200,2000, 10, 5000)
-
+    main(10, 100, 200, 2000, 10, 5000)
