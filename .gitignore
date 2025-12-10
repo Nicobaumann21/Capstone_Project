@@ -11,3 +11,6 @@ venv/
 
 # Logs / temp
 *.log
+
+# GitHub Actions
+.github/
