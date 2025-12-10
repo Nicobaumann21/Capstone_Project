@@ -1,0 +1,69 @@
+# **G Theoretische MongoDB-Vergleichsfrage (Pflicht)**
+
+## **Aufgabenstellung**:
+
+Eine zusätzliche Frage wird **nur theoretisch** analysiert:
+
+Beispielfrage (wird vorgegeben):
+
+**„Wie viele Eskalations-Events pro Projekt gab es im letzten Monat — gruppiert nach Typ?“**
+
+Pflicht:
+
+- 1 JSON-Beispielobjekt (Event)
+- 1 Satz: Warum SQL schwierig ist
+- 1 Satz: Warum MongoDB dafür geeigneter wäre
+- 1 JSON-Schema (2–5 Zeilen)
+- Keine Implementation nötig
+    
+    Optional: Mini-Aggregation → Bonus
+    
+
+## Antwort:
+
+## **Frage:**
+
+„Gibt es Mitarbeiter oder Rollen, die in den letzten 3 Monaten deutlich mehr Stunden gearbeitet haben als der Teamdurchschnitt, um Überlastung und potenzielle Burnout-Risiken zu erkennen?“
+
+---
+
+## **JSON-Beispielobjekt:**
+
+```json
+{
+  "log_id": 99312,
+  "employee": {
+    "id": 552,
+    "name": "Jonas Keller",
+    "role": "Data Engineer",
+    "team": "Platform"
+  },
+  "date": "2025-03-11",
+  "hours": 9.0,
+  "work_type": "regular"
+}
+
+```
+
+---
+
+## **Warum ist SQL hier schwierig?**
+
+SQL ist hier schwierig, weil Durchschnittsberechnungen über Zeiträume mit vielen JOINs (employees → time_logs → roles/teams) und komplexen GROUP BY-Strukturen nötig sind, was zu langen und schwer wartbaren Queries führt.
+
+---
+
+## **Warum ist MongoDB hier besser?**
+
+MongoDB ist geeigneter, weil alle benötigten Informationen (Mitarbeiter, Rolle, Team, Stunden) denormalisiert in einem einzigen Dokument vorliegen können und sich Durchschnittsvergleiche und Zeitfilter leicht über Aggregation-Pipelines abbilden lassen.
+
+---
+
+## **JSON-Schema :**
+```json
+{
+  "log_id": "number",
+  "date": "ISODate",
+  "hours": "number",
+  "employee": "object"
+}

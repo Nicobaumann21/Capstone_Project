@@ -1,0 +1,76 @@
+Sort  (cost=28826.79..28827.64 rows=340 width=144)
+      (actual time=133.800..134.065 rows=6163 loops=1)
+  Sort Key: ((eh.total_hours - ta.avg_hours_per_role)) DESC
+  Sort Method: quicksort  Memory: 766kB
+
+  CTE employee_hours
+    -> HashAggregate  (cost=27417.71..27670.24 rows=20202 width=61)
+                      (actual time=112.422..117.580 rows=19926 loops=1)
+         Group Key: e.employee_id
+         Batches: 5  Memory Usage: 8241kB  Disk Usage: 680kB
+
+         -> Hash Join  (cost=8892.98..26576.04 rows=168334 width=34)
+                        (actual time=24.180..91.540 rows=85422 loops=1)
+              Hash Cond: (tl.employee_id = e.employee_id)
+
+              -> Nested Loop
+                   (cost=8246.44..25487.53 rows=168334 width=13)
+                   (actual time=21.161..76.335 rows=85422 loops=1)
+                   Join Filter:
+                     (tl.date >= ((max(time_logs.date)) - '3 mons'::interval))
+                   Rows Removed by Join Filter: 419581
+
+                   -> Finalize Aggregate
+                        (cost=8246.44..8246.45 rows=1 width=4)
+                        (actual time=21.115..21.220 rows=1 loops=1)
+                        -> Gather  (cost=8246.22..8246.43 rows=2 width=4)
+                                     (actual time=21.020..21.215 rows=3 loops=1)
+                           Workers Planned: 2  Workers Launched: 2
+                           -> Partial Aggregate
+                                (cost=7246.22..7246.23 rows=1 width=4)
+                                (actual time=13.607..13.608 rows=1 loops=3)
+                                -> Parallel Seq Scan on time_logs
+                                     (cost=0.00..6720.18 rows=210418 width=4)
+                                     (actual time=0.017..7.601 rows=168334 loops=3)
+
+                   -> Seq Scan on time_logs tl
+                        (cost=0.00..9666.03 rows=505003 width=17)
+                        (actual time=0.040..21.622 rows=505003 loops=1)
+
+              -> Hash  (cost=394.02..394.02 rows=20202 width=29)
+                      (actual time=2.995..2.996 rows=20207 loops=1)
+                 Buckets: 32768  Batches: 1  Memory Usage: 1472kB
+                 -> Seq Scan on employees e
+                      (cost=0.00..394.02 rows=20202 width=29)
+                      (actual time=0.007..1.175 rows=20207 loops=1)
+
+  -> Hash Join  (cost=631.31..1142.26 rows=340 width=144)
+                (actual time=126.641..132.354 rows=6163 loops=1)
+       Hash Cond: ((eh.team_id = ta.team_id) AND (eh.role = ta.role))
+       Join Filter: (eh.total_hours > (ta.avg_hours_per_role * 1.2))
+       Rows Removed by Join Filter: 13763
+
+       -> CTE Scan on employee_hours eh
+            (cost=0.00..404.04 rows=20202 width=80)
+            (actual time=112.424..113.143 rows=19926 loops=1)
+
+       -> Hash  (cost=601.01..601.01 rows=2020 width=72)
+                (actual time=14.192..14.193 rows=4946 loops=1)
+            Buckets: 8192 (originally 2048)
+            Batches: 1 (originally 1)
+            Memory Usage: 372kB
+
+            -> Subquery Scan on ta
+                 (cost=555.56..601.01 rows=2020 width=72)
+                 (actual time=12.589..13.712 rows=4946 loops=1)
+                 -> HashAggregate
+                      (cost=555.56..580.81 rows=2020 width=72)
+                      (actual time=12.588..13.493 rows=4946 loops=1)
+                      Group Key: employee_hours.team_id, employee_hours.role
+                      Batches: 1  Memory Usage: 2513kB
+                      -> CTE Scan on employee_hours
+                           (cost=0.00..404.04 rows=20202 width=72)
+                           (actual time=0.001..8.349 rows=19926 loops=1)
+
+Planning Time: 0.209 ms  
+Execution Time: 134.542 ms

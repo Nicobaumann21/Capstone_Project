@@ -1,0 +1,44 @@
+QUERY PLAN                                                                                                            
+----------------------------------------------------------------------------------------------------------------------
+Sort  (cost=52410.08..52410.08 rows=1 width=39) (actual time=602.926..602.931 rows=21 loops=1)                        
+  Sort Key: c.industry, (count(p.project_id)) DESC                                                                    
+  Sort Method: quicksort  Memory: 26kB                                                                                
+  ->  HashAggregate  (cost=336.18..52410.07 rows=1 width=39) (actual time=15.665..602.856 rows=21 loops=1)            
+        Group Key: c.industry, c.name                                                                                 
+        Filter: ((count(p.project_id) = (SubPlan 1)) OR (count(p.project_id) = (SubPlan 2)))                          
+        Batches: 1  Memory Usage: 109kB                                                                               
+        Rows Removed by Filter: 360                                                                                   
+        ->  Hash Join  (cost=32.77..260.42 rows=10102 width=39) (actual time=0.193..1.692 rows=10102 loops=1)         
+              Hash Cond: (p.client_id = c.client_id)                                                                  
+              ->  Seq Scan on projects p  (cost=0.00..201.02 rows=10102 width=16) (actual time=0.003..0.356 rows=10102
+              ->  Hash  (cost=20.12..20.12 rows=1012 width=39) (actual time=0.181..0.181 rows=1012 loops=1)           
+                    Buckets: 1024  Batches: 1  Memory Usage: 83kB                                                     
+                    ->  Seq Scan on clients c  (cost=0.00..20.12 rows=1012 width=39) (actual time=0.005..0.058 rows=10
+        SubPlan 1                                                                                                     
+          ->  Aggregate  (cost=257.77..257.78 rows=1 width=8) (actual time=0.800..0.800 rows=1 loops=381)             
+                ->  HashAggregate  (cost=251.92..254.52 rows=260 width=16) (actual time=0.797..0.799 rows=27 loops=381
+                      Group Key: p2.client_id                                                                         
+                      Batches: 1  Memory Usage: 37kB                                                                  
+                      ->  Hash Join  (cost=22.97..250.62 rows=260 width=8) (actual time=0.047..0.776 rows=267 loops=38
+                            Hash Cond: (p2.client_id = clients.client_id)                                             
+                            ->  Seq Scan on projects p2  (cost=0.00..201.02 rows=10102 width=8) (actual time=0.000..0.
+                            ->  Hash  (cost=22.65..22.65 rows=26 width=8) (actual time=0.038..0.038 rows=27 loops=381)
+                                  Buckets: 1024  Batches: 1  Memory Usage: 10kB                                       
+                                  ->  Seq Scan on clients  (cost=0.00..22.65 rows=26 width=8) (actual time=0.002..0.03
+                                        Filter: (industry = c.industry)                                               
+                                        Rows Removed by Filter: 985                                                   
+        SubPlan 2                                                                                                     
+          ->  Aggregate  (cost=257.77..257.78 rows=1 width=8) (actual time=0.802..0.802 rows=1 loops=367)             
+                ->  HashAggregate  (cost=251.92..254.52 rows=260 width=16) (actual time=0.798..0.800 rows=27 loops=367
+                      Group Key: p2_1.client_id                                                                       
+                      Batches: 1  Memory Usage: 37kB                                                                  
+                      ->  Hash Join  (cost=22.97..250.62 rows=260 width=8) (actual time=0.048..0.777 rows=268 loops=36
+                            Hash Cond: (p2_1.client_id = clients_1.client_id)                                         
+                            ->  Seq Scan on projects p2_1  (cost=0.00..201.02 rows=10102 width=8) (actual time=0.000..
+                            ->  Hash  (cost=22.65..22.65 rows=26 width=8) (actual time=0.039..0.039 rows=27 loops=367)
+                                  Buckets: 1024  Batches: 1  Memory Usage: 10kB                                       
+                                  ->  Seq Scan on clients clients_1  (cost=0.00..22.65 rows=26 width=8) (actual time=0
+                                        Filter: (industry = c.industry)                                               
+                                        Rows Removed by Filter: 985                                                   
+Planning Time: 0.666 ms                                                                                               
+Execution Time: 603.040 ms                                                                                            

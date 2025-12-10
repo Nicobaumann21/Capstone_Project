@@ -1,0 +1,33 @@
+QUERY PLAN                                                                                                       
+-----------------------------------------------------------------------------------------------------------------
+Sort  (cost=384.69..384.71 rows=10 width=39) (actual time=2.235..2.239 rows=102 loops=1)                         
+  Sort Key: c.industry, pc.project_count DESC                                                                    
+  Sort Method: quicksort  Memory: 33kB                                                                           
+  CTE project_counts                                                                                             
+    ->  HashAggregate  (cost=251.53..261.65 rows=1012 width=16) (actual time=1.251..1.316 rows=1012 loops=1)     
+          Group Key: projects.client_id                                                                          
+          Batches: 1  Memory Usage: 193kB                                                                        
+          ->  Seq Scan on projects  (cost=0.00..201.02 rows=10102 width=8) (actual time=0.006..0.382 rows=10102 l
+  ->  Hash Join  (cost=97.31..122.87 rows=10 width=39) (actual time=1.972..2.193 rows=102 loops=1)               
+        Hash Cond: (c.industry = c2.industry)                                                                    
+        Join Filter: ((pc.project_count = (max(pc2.project_count))) OR (pc.project_count = (min(pc2.project_count
+        Rows Removed by Join Filter: 910                                                                         
+        ->  Hash Join  (cost=32.77..55.68 rows=1012 width=39) (actual time=1.443..1.573 rows=1012 loops=1)       
+              Hash Cond: (pc.client_id = c.client_id)                                                            
+              ->  CTE Scan on project_counts pc  (cost=0.00..20.24 rows=1012 width=16) (actual time=1.253..1.289 
+              ->  Hash  (cost=20.12..20.12 rows=1012 width=39) (actual time=0.184..0.184 rows=1012 loops=1)      
+                    Buckets: 1024  Batches: 1  Memory Usage: 83kB                                                
+                    ->  Seq Scan on clients c  (cost=0.00..20.12 rows=1012 width=39) (actual time=0.005..0.055 ro
+        ->  Hash  (cost=64.05..64.05 rows=39 width=28) (actual time=0.516..0.517 rows=39 loops=1)                
+              Buckets: 1024  Batches: 1  Memory Usage: 11kB                                                      
+              ->  HashAggregate  (cost=63.27..63.66 rows=39 width=28) (actual time=0.509..0.512 rows=39 loops=1) 
+                    Group Key: c2.industry                                                                       
+                    Batches: 1  Memory Usage: 24kB                                                               
+                    ->  Hash Join  (cost=32.77..55.68 rows=1012 width=20) (actual time=0.128..0.392 rows=1012 loo
+                          Hash Cond: (pc2.client_id = c2.client_id)                                              
+                          ->  CTE Scan on project_counts pc2  (cost=0.00..20.24 rows=1012 width=16) (actual time=
+                          ->  Hash  (cost=20.12..20.12 rows=1012 width=20) (actual time=0.125..0.125 rows=1012 lo
+                                Buckets: 1024  Batches: 1  Memory Usage: 64kB                                    
+                                ->  Seq Scan on clients c2  (cost=0.00..20.12 rows=1012 width=20) (actual time=0.
+Planning Time: 0.152 ms                                                                                          
+Execution Time: 2.290 ms            

@@ -1,0 +1,24 @@
+Sort  (cost=8533.05..8583.55 rows=20202 width=75) (actual time=54.362..54.392 rows=1012 loops=1)
+  Sort Key: (avg((count(t.task_id))))
+  Sort Method: quicksort  Memory: 122kB
+  ->  HashAggregate  (cost=6633.84..6886.36 rows=20202 width=75) (actual time=53.815..54.079 rows=1012 loops=1)
+        Group Key: e.team_id, tm.name
+        Batches: 1  Memory Usage: 1041kB
+        ->  Hash Join  (cost=5873.51..6330.81 rows=20202 width=35) (actual time=45.701..50.627 rows=20202 loops=1)
+              Hash Cond: (e.team_id = tm.team_id)
+              ->  HashAggregate  (cost=5843.74..6045.76 rows=20202 width=37) (actual time=45.508..48.400 rows=20202 loops=1)
+                    Group Key: e.employee_id
+                    Batches: 1  Memory Usage: 3089kB
+                    ->  Hash Right Join  (cost=646.54..5503.98 rows=67953 width=37) (actual time=4.041..29.466 rows=68172 loops=1)
+                          Hash Cond: (t.assignee_id = e.employee_id)
+                          ->  Seq Scan on tasks t  (cost=0.00..4679.02 rows=67953 width=16) (actual time=0.011..13.383 rows=67429 loops=1)
+                                Filter: (status = 'Running'::text)
+                                Rows Removed by Filter: 134573
+                          ->  Hash  (cost=394.02..394.02 rows=20202 width=29) (actual time=3.940..3.941 rows=20202 loops=1)
+                                Buckets: 32768  Batches: 1  Memory Usage: 1472kB
+                                ->  Seq Scan on employees e  (cost=0.00..394.02 rows=20202 width=29) (actual time=0.006..1.437 rows=20202 loops=1)
+              ->  Hash  (cost=17.12..17.12 rows=1012 width=19) (actual time=0.182..0.182 rows=1012 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 64kB
+                    ->  Seq Scan on teams tm  (cost=0.00..17.12 rows=1012 width=19) (actual time=0.012..0.070 rows=1012 loops=1)
+Planning Time: 0.240 ms
+Execution Time: 55.152 ms

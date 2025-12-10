@@ -1,0 +1,26 @@
+Sort  (cost=7968.49..8019.00 rows=20202 width=75) (actual time=42.144..42.175 rows=1012 loops=1)
+  Sort Key: (avg((count(t.task_id))))
+  Sort Method: quicksort  Memory: 122kB
+  ->  HashAggregate  (cost=6069.28..6321.81 rows=20202 width=75) (actual time=41.625..41.878 rows=1012 loops=1)
+        Group Key: e.team_id, tm.name
+        Batches: 1  Memory Usage: 1041kB
+        ->  Hash Join  (cost=5308.96..5766.25 rows=20202 width=35) (actual time=35.015..38.869 rows=20202 loops=1)
+              Hash Cond: (e.team_id = tm.team_id)
+              ->  HashAggregate  (cost=5279.19..5481.21 rows=20202 width=37) (actual time=34.812..36.882 rows=20202 loops=1)
+                    Group Key: e.employee_id
+                    Batches: 1  Memory Usage: 3089kB
+                    ->  Hash Right Join  (cost=1757.60..4939.42 rows=67953 width=37) (actual time=5.336..22.707 rows=68172 loops=1)
+                          Hash Cond: (t.assignee_id = e.employee_id)
+                          ->  Bitmap Heap Scan on tasks t  (cost=1111.06..4114.47 rows=67953 width=16) (actual time=2.552..9.336 rows=67429 loops=1)
+                                Recheck Cond: (status = 'Running'::text)
+                                Heap Blocks: exact=2154
+                                ->  Bitmap Index Scan on idx_tasks_status_assignee  (cost=0.00..1094.07 rows=67953 width=0) (actual time=2.372..2.372 rows=67429 loops=1)
+                                      Index Cond: (status = 'Running'::text)
+                          ->  Hash  (cost=394.02..394.02 rows=20202 width=29) (actual time=2.754..2.756 rows=20202 loops=1)
+                                Buckets: 32768  Batches: 1  Memory Usage: 1472kB
+                                ->  Seq Scan on employees e  (cost=0.00..394.02 rows=20202 width=29) (actual time=0.005..1.113 rows=20202 loops=1)
+              ->  Hash  (cost=17.12..17.12 rows=1012 width=19) (actual time=0.198..0.198 rows=1012 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 64kB
+                    ->  Seq Scan on teams tm  (cost=0.00..17.12 rows=1012 width=19) (actual time=0.007..0.061 rows=1012 loops=1)
+Planning Time: 0.382 ms
+Execution Time: 42.386 ms
