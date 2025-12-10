@@ -2,16 +2,13 @@
 
 Dieses Projekt entstand im Fach Datenbanken und DB-Programmierung: Relational, NoSQL, New SQL
 
-Notion-Link: [Hier klicken](https://www.notion.so/Portfolio-Schenk-2be53dc6cef980239683e799d5455edd?source=copy_link)
+Dieser Link ist für eine Notion-Seite, auf der alle relevanten Schritte, Queries und sonstige step-by-step aufgeführt sind:
+[Notion-Link](https://www.notion.so/Portfolio-Schenk-2be53dc6cef980239683e799d5455edd?source=copy_link)
 
 ## Projektstruktur
 
 ```
 ├── .env
-├── .git
-├── .github
-│   └── workflows
-│       └── update_readme.yml
 ├── .gitignore
 ├── Executive_Summary.md
 ├── Präsentation
@@ -68,5 +65,4 @@ Notion-Link: [Hier klicken](https://www.notion.so/Portfolio-Schenk-2be53dc6cef98
 │   └── schema.sql
 ├── validations
 │   └── validate.sql
-└── venv
 ```
